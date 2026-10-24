@@ -1,0 +1,66 @@
+id: twitch
+title: Twitch & the stream
+summary: The chat banner when the stream goes live, and the advancements for watching along from the game.
+intro: |
+  Somebody on this server streams, and I am the one who rings the bell about it. Banners, chimes and a few advancements for people who actually show up.
+icon: AMETHYST_SHARD
+category: Chat & community
+order: 40
+module: twitch
+aliases: [stream, live, streamer, streaming]
+keywords: [twitch, announcement, banner, advancements, hype, clip, watch, channel]
+commands: [twitch]
+sections:
+  - question: What is the stream banner?
+    title: The banner
+    text: |
+      {if:twitch:enabled}When the Twitch channel <white>{setting:twitch:channel}</white> goes live, everybody online gets a banner in chat: who is live, the stream's title, the game, and a clickable <light_purple>Watch now</light_purple> line that opens twitch.tv/{setting:twitch:channel}. When the stream ends, a second banner says how long it ran.{else}The stream announcements are switched off on this server, so you will hear nothing from me about Twitch. Staff can turn them on again in {cmd:/settings}.{/if}
+      {if:twitch:enabled && twitch:sound}Both banners come with a short chime — turn your volume up, or down, as you see fit.{/if}
+  - question: Does it reach every server?
+    title: Network-wide
+    when: twitch:enabled
+    text: |
+      Yes. On a network only one server actually asks Twitch whether the channel is live; it tells all the others, and each of them words the banner itself. So you see the same banner wherever you stand. If that server goes down, another takes over.
+  - question: Why did I miss the banner?
+    title: Missed it
+    when: twitch:enabled
+    text: |
+      I only announce streams that began within the last <white>{setting:twitch:fresh-minutes|minutes}</white>. A server that restarts while the stream has been running for hours stays quiet instead of shouting about old news. And a short dropout does not count as "ended": the stream has to look offline {setting:twitch:end-after-looks|count} checks in a row, one check every {setting:twitch:poll-seconds|seconds}, before the end banner appears.
+  - question: Which advancements can I get?
+    title: Advancements
+    when: twitch:enabled
+    text: |
+      Open the advancements screen and find the <light_purple>On Stream</light_purple> tab. You earn them by being on the server while the stream is live:
+      <white>Tuned In</white> — be online when the stream goes live (or join while it is on).
+      <white>Hype Train</white> — join within five minutes of the stream going live.
+      <white>Day One</white> — stay online from the start of a stream to its end.
+      <white>Regular</white> — be online during 10 different streams. Each stream counts once, even if you rejoin or hop servers.
+      <white>Afterparty</white> — still be online when the stream ends.
+  - question: What are Caught on Stream and Clip That?
+    title: Near the streamer
+    when: twitch:enabled && twitch:streamer-minecraft-name
+    text: |
+      Two advancements are about standing near <white>{setting:twitch:streamer-minecraft-name}</white> in the game while the stream is live. <white>Caught on Stream</white>: spend ten minutes within {setting:twitch:near-blocks|count} blocks of them (counted once a minute, same world). <white>Clip That!</white>: die within {setting:twitch:near-blocks|count} blocks of them. Yes, that is an achievement. No, I will not comment.
+  - question: Do they count if nobody streams?
+    title: Only while live
+    when: twitch:enabled
+    text: |
+      No — every one of them needs a live stream. Staff test announcements do not count either, unless a staff member deliberately runs a test that does.
+  - question: What can staff do with /twitch?
+    title: "Staff: /twitch"
+    permission: rainstwitch.admin
+    text: |
+      {cmd:/twitch status} — which channel is watched, what was last seen (live or offline), whether this server or another one asks Twitch, and where the login comes from.
+      {cmd:/twitch test live} and {cmd:/twitch test ended} — show you the banner, only to you.
+      {cmd:/twitch test live all} — tells the whole network. Add <white>counts</white> to make it earn the advancements like a real stream, for when Twitch cannot be asked.
+      {cmd:/twitch reload} — read the Twitch login again.
+  - question: How do I set up the Twitch login?
+    title: "Staff: the login"
+    permission: rainstwitch.admin
+    text: |
+      The server needs a Twitch app login (client id and secret; it can only read public live status). From the <i>console</i> only — what you type in the game lands in the server log: <white>/twitch login <client-id> <client-secret></white>, and <white>/twitch logout</white> to remove it. Alternatively set the environment variables <white>RAINS_TWITCH_CLIENT_ID</white> and <white>RAINS_TWITCH_CLIENT_SECRET</white>; they win over a stored login. Without any login a server only listens to what the watching server tells it.
+  - question: Which settings are there?
+    title: "Staff: settings"
+    permission: rainstwitch.admin
+    text: |
+      In {cmd:/settings} under <white>Twitch announcements</white>: on/off (now {setting:twitch:enabled|onoff}), the channel ({setting:twitch:channel}), a look every {setting:twitch:poll-seconds|seconds} (read at start), the end after {setting:twitch:end-after-looks|count} looks, only streams fresher than {setting:twitch:fresh-minutes|minutes}, the chime ({setting:twitch:sound|onoff}), the streamer's Minecraft name ({setting:twitch:streamer-minecraft-name}) and how near counts ({setting:twitch:near-blocks|count} blocks).
