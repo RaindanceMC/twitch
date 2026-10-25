@@ -43,6 +43,19 @@ public final class ViewerTracker {
         return stream;
     }
 
+    /** When the live stream began, epoch millis; 0 when nothing is live. */
+    public synchronized long startedAt() {
+        return stream == null ? 0 : startedAt;
+    }
+
+    public synchronized boolean fromStart(UUID player) {
+        return wholeStream.contains(player);
+    }
+
+    public synchronized int minutesNear(UUID player) {
+        return minutesNear.getOrDefault(player, 0);
+    }
+
     public synchronized List<Award> live(String id, long started, Set<UUID> online, long now) {
         stream = id == null || id.isBlank() ? "stream@" + started : id;
         startedAt = started > 0 ? started : now;

@@ -66,4 +66,22 @@ class ViewerTrackerTest {
         tracker.ended(Set.of());
         assertThat(tracker.diedNear(BO)).isEmpty();
     }
+
+    @Test
+    @DisplayName("what a viewer stands on can be read: there from the start, minutes near, when it began")
+    void standing() {
+        ViewerTracker tracker = new ViewerTracker();
+        assertThat(tracker.fromStart(ADA)).isFalse();
+        tracker.live("s1", 5_000, Set.of(ADA), 9_000);
+        tracker.joined(BO, 10 * MINUTE);
+        tracker.minuteNear(Set.of(ADA));
+        tracker.minuteNear(Set.of(ADA));
+        assertThat(tracker.fromStart(ADA)).isTrue();
+        assertThat(tracker.fromStart(BO)).isFalse();
+        assertThat(tracker.minutesNear(ADA)).isEqualTo(2);
+        assertThat(tracker.minutesNear(BO)).isZero();
+        assertThat(tracker.startedAt()).isEqualTo(5_000);
+        tracker.ended(Set.of());
+        assertThat(tracker.fromStart(ADA)).isFalse();
+    }
 }

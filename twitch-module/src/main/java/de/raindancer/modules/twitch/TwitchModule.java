@@ -31,7 +31,7 @@ import java.util.List;
  */
 public final class TwitchModule implements FlexModule {
 
-    private static final ModuleInfo INFO = ModuleInfo.of("twitch", "Twitch", "0.5.0")
+    private static final ModuleInfo INFO = ModuleInfo.of("twitch", "Twitch", "0.6.0")
             .describedAs("A chat announcement on every server when the channel goes live and when it ends, and advancements for watching.")
             .by("Raindancer118");
 
@@ -72,6 +72,19 @@ public final class TwitchModule implements FlexModule {
         watching.define();
         announcer.onHeard(watching::heard);
         context.listener(new TwitchWatchers(watching));
+        // Screens for /screen — Core 2.10.0; on an older Core there are simply none.
+        try {
+            var screens = context.core().screens();
+            if (screens != null) {
+                var liveBoard = new de.raindancer.modules.twitch.model.LiveBoard();
+                announcer.onHeard(liveBoard::heard);
+                new de.raindancer.modules.twitch.service.TwitchScreens(liveBoard, watching.tracker(), () -> poller,
+                        settings::current, System::currentTimeMillis).register(screens, context.plugin());
+                context.closeWith(() -> de.raindancer.modules.twitch.service.TwitchScreens.KINDS.forEach(screens::unregister));
+            }
+        } catch (LinkageError olderCore) {
+            context.log().info("RainsCore is older than 2.10.0: no Twitch screens until it is updated.");
+        }
         var minutes = Scheduling.globalTimer(context.plugin(), 1200, 1200, task -> watching.minute());
         if (minutes != null) {
             context.closeWith(minutes::cancel);

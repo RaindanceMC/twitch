@@ -46,6 +46,10 @@ public final class TwitchAdvancements {
         this.settings = settings;
     }
 
+    public ViewerTracker tracker() {
+        return tracker;
+    }
+
     public void define() {
         advancements.define(AdvancementDef.builder(PLUGIN, "root").icon(Material.AMETHYST_CLUSTER)
                 .title("<light_purple>On Stream").description("Be on the server while the stream is live")
