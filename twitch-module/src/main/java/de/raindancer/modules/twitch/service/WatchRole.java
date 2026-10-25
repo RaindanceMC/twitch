@@ -14,6 +14,7 @@ public final class WatchRole {
 
     public static final String ROLE = "twitch";
 
+    private final String role;
     private final NetworkRoles roles;
     private final BooleanSupplier wanted;
     private final Runnable gained;
@@ -26,6 +27,12 @@ public final class WatchRole {
      *               cannot must not hold the role, or nobody would ask
      */
     public WatchRole(NetworkRoles roles, BooleanSupplier wanted, Runnable gained, Runnable lost) {
+        this(ROLE, roles, wanted, gained, lost);
+    }
+
+    /** @param role the role's name in the database, one per kind of watch */
+    public WatchRole(String role, NetworkRoles roles, BooleanSupplier wanted, Runnable gained, Runnable lost) {
+        this.role = role;
         this.roles = roles;
         this.wanted = wanted;
         this.gained = gained;
@@ -35,9 +42,9 @@ public final class WatchRole {
     /** Claims or renews the role, or lets it go when this server can no longer watch. Call it every few seconds. */
     public synchronized void tick() {
         boolean can = wanted.getAsBoolean();
-        boolean now = can && (roles == null || roles.claim(ROLE));
+        boolean now = can && (roles == null || roles.claim(role));
         if (holding && !can && roles != null) {
-            roles.release(ROLE);
+            roles.release(role);
         }
         move(now);
     }
@@ -45,7 +52,7 @@ public final class WatchRole {
     /** Gives the role up at once — at shutdown — so another server does not wait out the lease. */
     public synchronized void stop() {
         if (roles != null && holding) {
-            roles.release(ROLE);
+            roles.release(role);
         }
         move(false);
     }
@@ -63,7 +70,7 @@ public final class WatchRole {
 
     /** The server that watches, as far as the database says. */
     public Optional<String> holder() {
-        return roles == null ? Optional.empty() : roles.holder(ROLE);
+        return roles == null ? Optional.empty() : roles.holder(role);
     }
 
     private void move(boolean now) {

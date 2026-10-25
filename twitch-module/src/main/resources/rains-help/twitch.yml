@@ -7,9 +7,9 @@ icon: AMETHYST_SHARD
 category: Chat & community
 order: 40
 module: twitch
-aliases: [stream, live, streamer, streaming]
-keywords: [twitch, announcement, banner, advancements, hype, clip, watch, channel]
-commands: [twitch]
+aliases: [stream, live, streamer, streaming, creator, creators]
+keywords: [twitch, youtube, announcement, banner, advancements, hype, clip, watch, channel, live mode, red dot]
+commands: [twitch, live]
 sections:
   - question: What is the stream banner?
     title: The banner
@@ -46,6 +46,25 @@ sections:
     when: twitch:enabled
     text: |
       No — every one of them needs a live stream. Staff test announcements do not count either, unless a staff member deliberately runs a test that does.
+  - question: What is the red dot next to a name?
+    title: Live mode
+    when: twitch:creators-enabled
+    text: |
+      A pulsing <red>●</red> in front of somebody's name — in chat, the tablist and over their head — means they are streaming right now. Click the dot in chat to open their stream. {cmd:/live list} shows everybody who is live.
+  - question: I stream — how do I go live?
+    title: "Creators: /live"
+    when: twitch:creators-enabled
+    permission: rainstwitch.live
+    text: |
+      {cmd:/live} switches your live mode on, and again off. Switched on by hand it turns itself off after {setting:twitch:creators-manual-hours|count} hours, in case you forget.
+      Easier: {cmd:/live link} with your channel url — <white>twitch.tv/yourname</white> or <white>youtube.com/@yourname</white>. Then your dot turns on by itself when you go live there (checked every {setting:twitch:creators-poll-seconds|seconds}) and off when the stream ends. {cmd:/live off} during a stream hides just that stream. {cmd:/live unlink} forgets the channel, {cmd:/live status} shows what is set.
+      {if:twitch:creators-announce}Going live also tells everybody online in one chat line.{/if}
+  - question: How do staff handle creators?
+    title: "Staff: creators"
+    permission: rainstwitch.admin
+    text: |
+      Give the creators' group the permission <white>rainstwitch.live</white> so they can use {cmd:/live} themselves. Staff can do everything for somebody else by adding their name: <white>/live on <player></white>, <white>/live off <player></white>, <white>/live link <player> <url></white>, <white>/live unlink <player></white>, <white>/live status <player></white>.
+      Linked YouTube channels are looked at without any login; Twitch channels need the Twitch login (see below). One server of the network looks; every server shows the dots.
   - question: What can staff do with /twitch?
     title: "Staff: /twitch"
     permission: rainstwitch.admin
@@ -64,3 +83,4 @@ sections:
     permission: rainstwitch.admin
     text: |
       In {cmd:/settings} under <white>Twitch announcements</white>: on/off (now {setting:twitch:enabled|onoff}), the channel ({setting:twitch:channel}), a look every {setting:twitch:poll-seconds|seconds} (read at start), the end after {setting:twitch:end-after-looks|count} looks, only streams fresher than {setting:twitch:fresh-minutes|minutes}, the chime ({setting:twitch:sound|onoff}), the streamer's Minecraft name ({setting:twitch:streamer-minecraft-name}) and how near counts ({setting:twitch:near-blocks|count} blocks).
+      Under <white>Creators' live mode</white>: on/off ({setting:twitch:creators-enabled|onoff}), a look at linked channels every {setting:twitch:creators-poll-seconds|seconds}, the chat line ({setting:twitch:creators-announce|onoff}) and how long live by hand lasts ({setting:twitch:creators-manual-hours|count} hours).

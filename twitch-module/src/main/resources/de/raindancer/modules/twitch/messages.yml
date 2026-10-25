@@ -31,3 +31,38 @@ twitch:
     head: "   <dark_gray><bold>●</bold></dark_gray> <gradient:#9146FF:#E0A8FF><bold>STREAM ENDED</bold></gradient>"
     who: "   <white><bold><name></bold></white> <gray>was live for <white><lasted></white>."
     thanks: "   <gray>Thanks for watching! <light_purple>♥</light_purple> <dark_gray>—</dark_gray> <white>twitch.tv/<channel></white>"
+live:
+  usage: "<gray>/live <dark_gray>(on or off)</dark_gray> · /live on|off · /live link <channel url> · /live unlink · /live status · /live list <dark_gray>— staff add a player name: /live on <player>, /live link <player> <url></dark_gray>"
+  disabled: "<red>Live mode is switched off on this server."
+  not-creator: "<red>Live mode is for creators. Ask staff if you stream here."
+  not-allowed: "<red>Only staff can switch live mode for somebody else."
+  unknown-player: "<red>Nobody called <white><name></white> has been here."
+  failed: "<red>That could not be saved; nothing was changed. Try again in a moment."
+  on: "<green>You are live! <red>●</red> <gray>pulses next to your name now. <white>/live</white> again when you stop — it switches itself off after <white><hours></white> hours otherwise."
+  on-other: "<green><white><name></white> is live now, by hand."
+  off: "<gray>Live mode is off. Good stream!"
+  off-other: "<gray><white><name></white> is no longer live."
+  off-hidden: "<gray>Live mode is off — hidden for this stream only. Your next stream turns it on again by itself."
+  off-hidden-other: "<gray><white><name></white>'s running stream is hidden; their next one shows again."
+  link:
+    bad: "<red>That is not a channel link. Paste it like <white>twitch.tv/yourname</white> or <white>youtube.com/@yourname</white>."
+    done: "<green>Linked <white><channel></white>. <gray>When you go live on <platform>, your dot turns on by itself within a minute or two, and off when the stream ends."
+    done-other: "<green>Linked <white><channel></white> to <white><name></white>."
+    twitch-unwatched: "<yellow>Twitch is not being asked yet — staff have to set the Twitch login first (see /twitch status). Until then /live works by hand."
+  unlink:
+    done: "<gray>Your channel is unlinked; nothing about it is kept."
+    done-other: "<gray><white><name></white>'s channel is unlinked."
+    none: "<gray><white><name></white> has no channel linked."
+  status:
+    found: "<red>●</red> <white><name></white> <gray>is live on <white><platform></white> for <white><lasted></white>."
+    by-hand: "<red>●</red> <white><name></white> <gray>is live (switched on by hand) for <white><lasted></white>."
+    off: "<gray><white><name></white> is not live."
+    channel: "<gray>Channel: <white><channel></white>"
+    no-channel: "<gray>No channel linked. <white>/live link <channel url></white> turns live mode on and off by itself."
+  list:
+    none: "<gray>Nobody is live right now."
+    head: "<red>●</red> <gray>Live right now (<white><count></white>):"
+    line: "  <red>●</red> <white><name></white> <dark_gray>·</dark_gray> <gray><where></gray> <dark_gray>· <lasted>"
+  announce:
+    channel: "<red>●</red> <white><name></white> <gray>just went live on <white><platform></white>! <gradient:#FF3030:#FF8A8A><underlined>Watch</underlined></gradient>"
+    plain: "<red>●</red> <white><name></white> <gray>is live now!"

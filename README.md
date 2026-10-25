@@ -15,7 +15,7 @@ Needs Java 25 and read access to `packages.tstieh.de` (server ids `packages-rele
 
 ## Plugins
 
-- `twitch-standalone/target/RainsTwitch-0.4.1.jar` — also published as `de.raindancer.modules:twitch-standalone:0.4.1`
+- `twitch-standalone/target/RainsTwitch-0.7.0.jar` — also published as `de.raindancer.modules:twitch-standalone:0.7.0`
 
 ## Versions
 

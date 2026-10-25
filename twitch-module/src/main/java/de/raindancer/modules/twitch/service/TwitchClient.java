@@ -56,6 +56,41 @@ public final class TwitchClient {
         }
     }
 
+    /** Several channels at once, a hundred to a question; every channel of a failed question is unknown. Blocking. */
+    public java.util.Map<String, Observation> lookMany(java.util.List<String> logins) {
+        java.util.Map<String, Observation> seen = new java.util.HashMap<>();
+        for (int from = 0; from < logins.size(); from += 100) {
+            java.util.List<String> part = logins.subList(from, Math.min(logins.size(), from + 100));
+            seen.putAll(lookPart(part));
+        }
+        return seen;
+    }
+
+    private java.util.Map<String, Observation> lookPart(java.util.List<String> logins) {
+        java.util.Map<String, Observation> unknown = new java.util.HashMap<>();
+        logins.forEach(login -> unknown.put(login, Observation.UNKNOWN));
+        try {
+            if (!ensureToken()) {
+                return unknown;
+            }
+            StringBuilder query = new StringBuilder("https://api.twitch.tv/helix/streams?first=100");
+            logins.forEach(login -> query.append("&user_login=").append(URLEncoder.encode(login, StandardCharsets.UTF_8)));
+            HttpResponse<String> response = http.send(HttpRequest.newBuilder(URI.create(query.toString()))
+                    .timeout(Duration.ofSeconds(10)).header("Client-Id", clientId)
+                    .header("Authorization", "Bearer " + token).GET().build(), HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 401) {
+                tokenUntil = 0;
+                return unknown;
+            }
+            return response.statusCode() == 200 ? StreamParser.readMany(response.body(), logins) : unknown;
+        } catch (IOException | RuntimeException failed) {
+            return unknown;
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            return unknown;
+        }
+    }
+
     private boolean ensureToken() throws IOException, InterruptedException {
         if (!token.isEmpty() && System.currentTimeMillis() < tokenUntil) {
             return true;

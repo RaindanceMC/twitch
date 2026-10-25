@@ -9,7 +9,12 @@ import de.raindancer.modules.api.ModuleCommand;
 import de.raindancer.modules.api.ModuleContext;
 import de.raindancer.modules.api.ModuleInfo;
 import de.raindancer.modules.twitch.rules.LiveTrackerRule;
+import de.raindancer.modules.twitch.command.LiveCommand;
 import de.raindancer.modules.twitch.service.Announcer;
+import de.raindancer.modules.twitch.service.CreatorBook;
+import de.raindancer.modules.twitch.service.CreatorWatcher;
+import de.raindancer.modules.twitch.service.LiveMarks;
+import de.raindancer.modules.twitch.service.YouTubeClient;
 import de.raindancer.modules.twitch.listener.TwitchWatchers;
 import de.raindancer.modules.twitch.service.TwitchAdvancements;
 import de.raindancer.modules.twitch.service.TwitchClient;
@@ -31,8 +36,9 @@ import java.util.List;
  */
 public final class TwitchModule implements FlexModule {
 
-    private static final ModuleInfo INFO = ModuleInfo.of("twitch", "Twitch", "0.6.0")
-            .describedAs("A chat announcement on every server when the channel goes live and when it ends, and advancements for watching.")
+    private static final ModuleInfo INFO = ModuleInfo.of("twitch", "Twitch", "0.7.0")
+            .describedAs("A chat announcement on every server when the channel goes live and when it ends, advancements for "
+                    + "watching, and a live mode for creators.")
             .by("Raindancer118");
 
     private LogChannel log;
@@ -47,6 +53,9 @@ public final class TwitchModule implements FlexModule {
     private volatile TwitchPoller poller;
     private ScheduledTask roleTimer;
     private ScheduledTask pollTimer;
+    private CreatorBook creators;
+    private WatchRole creatorRole;
+    private ScheduledTask creatorTimer;
 
     @Override
     public ModuleInfo info() {
@@ -101,6 +110,7 @@ public final class TwitchModule implements FlexModule {
                 context.core().messages(), context.core(), settings::current, announcer, () -> poller, role,
                 this::reloadLogin, logins);
         TwitchCommands.ready(services);
+        startCreators();
         logins.ensureTemplate();
         reloadLogin();
         roleTimer = Scheduling.asyncTimer(context.plugin(), 1, 5, task -> {
@@ -108,6 +118,11 @@ public final class TwitchModule implements FlexModule {
                 role.tick();
             } catch (RuntimeException failed) {
                 log.warn("The Twitch watch could not be checked: {}", failed.getMessage());
+            }
+            try {
+                creatorRole.tick();
+            } catch (RuntimeException failed) {
+                log.warn("The creators' watch could not be checked: {}", failed.getMessage());
             }
         });
         log.info("Twitch announcements are up for '{}'{}.", settings.current().channelClean(),
@@ -118,6 +133,59 @@ public final class TwitchModule implements FlexModule {
     private void reloadLogin() {
         login = logins.read();
         role.refresh();
+        if (creatorRole != null) {
+            creatorRole.refresh();
+        }
+    }
+
+    /** Live mode: every server draws the dots and says who went live; one server looks at the linked channels. */
+    private void startCreators() {
+        YamlStore creatorDocument = YamlStore.network(context.dataFolder().resolve("creators.yml"));
+        creators = new CreatorBook(creatorDocument, log);
+        creators.reload();
+        LiveMarks marks = new LiveMarks(context.plugin(), context.plugin().getServer(), log, context.core().messages(),
+                creators, settings::current, System::currentTimeMillis);
+        marks.start();
+        context.closeWith(marks::stop);
+        context.closeWith(creatorDocument.onChange(() -> Scheduling.async(context.plugin(), creators::reload)));
+        var server = context.plugin().getServer();
+        TwitchCommands.readyLive(new LiveCommand.Services(context.core().messages(), creators, settings::current,
+                System::currentTimeMillis, name -> {
+                    var known = server.getPlayerExact(name) != null ? server.getPlayerExact(name)
+                            : server.getOfflinePlayerIfCached(name);
+                    return known == null || known.getName() == null ? java.util.Optional.empty()
+                            : java.util.Optional.of(new LiveCommand.Known(known.getUniqueId(), known.getName()));
+                }, () -> login.present(), task -> Scheduling.async(context.plugin(), task)));
+        creatorRole = new WatchRole("twitch-creators", context.core().networkRoles().orElse(null),
+                () -> settings.current().creatorsEnabled(), this::beginCreators, this::endCreators);
+    }
+
+    private synchronized void beginCreators() {
+        stopCreatorTimer();
+        TwitchLogin using = login;
+        TwitchClient twitch = using.present() ? new TwitchClient(using.clientId(), using.clientSecret()) : null;
+        YouTubeClient youtube = new YouTubeClient();
+        CreatorWatcher watcher = new CreatorWatcher(creators, twitch == null ? null : twitch::lookMany, youtube::look,
+                settings::current, log);
+        creatorTimer = Scheduling.asyncTimer(context.plugin(), 5, settings.current().creatorsPollSecondsClamped(), task -> {
+            try {
+                watcher.poll();
+            } catch (RuntimeException failed) {
+                log.warn("A look at the creators' channels failed: {}", failed.getMessage());
+            }
+        });
+        log.info("This server looks at the creators' channels now{}.", twitch == null ? " (YouTube only: no Twitch login)" : "");
+    }
+
+    private synchronized void endCreators() {
+        stopCreatorTimer();
+    }
+
+    private void stopCreatorTimer() {
+        if (creatorTimer != null) {
+            creatorTimer.cancel();
+            creatorTimer = null;
+        }
     }
 
     /** This server became the one that asks Twitch (or its login changed): a fresh poller on what was announced so far. */
@@ -162,6 +230,9 @@ public final class TwitchModule implements FlexModule {
         }
         if (role != null) {
             role.stop();
+        }
+        if (creatorRole != null) {
+            creatorRole.stop();
         }
         TwitchCommands.stopped();
     }

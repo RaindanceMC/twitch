@@ -17,6 +17,7 @@ import java.time.Duration;
  */
 @Settings(id = "twitch", topics = {
         @Topic(path = "twitch", title = "Twitch announcements", icon = Material.AMETHYST_SHARD),
+        @Topic(path = "creators", title = "Creators' live mode", icon = Material.REDSTONE),
 })
 public record TwitchSettings(
 
@@ -62,9 +63,32 @@ public record TwitchSettings(
         @In("twitch") @Title("Near the streamer, blocks") @Range(min = 4, max = 128)
         @Describe("How close counts as near the streamer for those two advancements.")
         @Key("near-blocks")
-        int nearBlocks) {
+        int nearBlocks,
 
-    public static final TwitchSettings DEFAULTS = new TwitchSettings(true, "lillyyxoxo_", 60, 3, 15, true, "lillyyxoxo", 32);
+        @In("creators") @Title("Live mode is on")
+        @Describe("Whether creators can show as live: a pulsing red dot in front of their name in chat, the tablist "
+                + "and over their head, switched with /live or found from the channel they linked.")
+        @Key("creators-enabled")
+        boolean creatorsEnabled,
+
+        @In("creators") @Title("Look at linked channels every") @Range(min = 30, max = 600)
+        @Describe("Seconds between looks at the creators' linked Twitch and YouTube channels. Read when the watch "
+                + "starts. Twitch channels need the Twitch login; YouTube channels need nothing.")
+        @Key("creators-poll-seconds")
+        int creatorsPollSeconds,
+
+        @In("creators") @Title("Say it in chat")
+        @Describe("One line in chat on every server when a creator goes live.")
+        @Key("creators-announce")
+        boolean creatorsAnnounce,
+
+        @In("creators") @Title("Live by hand ends after, hours") @Range(min = 1, max = 48)
+        @Describe("Live mode switched on with /live turns itself off after this long, for whoever forgets.")
+        @Key("creators-manual-hours")
+        int creatorsManualHours) {
+
+    public static final TwitchSettings DEFAULTS = new TwitchSettings(true, "lillyyxoxo_", 60, 3, 15, true, "lillyyxoxo", 32,
+            true, 60, true, 12);
 
     public String channelClean() {
         String clean = channel == null ? "" : channel.strip().toLowerCase(java.util.Locale.ROOT);
@@ -77,6 +101,14 @@ public record TwitchSettings(
 
     public Duration fresh() {
         return Duration.ofMinutes(Math.clamp(freshMinutes, 1, 720));
+    }
+
+    public int creatorsPollSecondsClamped() {
+        return Math.clamp(creatorsPollSeconds, 30, 600);
+    }
+
+    public Duration manualAtMost() {
+        return Duration.ofHours(Math.clamp(creatorsManualHours, 1, 48));
     }
 
     public int pollSecondsClamped() {

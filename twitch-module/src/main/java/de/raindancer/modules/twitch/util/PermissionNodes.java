@@ -12,12 +12,17 @@ public final class PermissionNodes {
     /** {@code /twitch}: status, test announcements, reading the login again. */
     public static final String ADMIN = "rainstwitch.admin";
 
+    /** {@code /live} for oneself: live mode and a linked channel. Given to the creators' group. */
+    public static final String LIVE = "rainstwitch.live";
+
     private PermissionNodes() {
     }
 
     public static List<Permission> declared() {
         return List.of(new Permission(ADMIN, "See the Twitch watch, test the announcements, read the login again",
-                PermissionDefault.OP));
+                PermissionDefault.OP),
+                new Permission(LIVE, "Switch one's own live mode with /live and link one's channel",
+                        PermissionDefault.FALSE));
     }
 
     public static int register(Server server) {

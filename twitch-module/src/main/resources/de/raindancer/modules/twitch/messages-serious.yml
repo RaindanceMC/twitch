@@ -4,3 +4,8 @@ twitch:
     who: "   <white><bold><name></bold></white> <gray>is live."
   ended:
     thanks: "   <gray>Thank you for watching. <white>twitch.tv/<channel></white>"
+live:
+  off: "<gray>Live mode is off."
+  announce:
+    channel: "<red>●</red> <white><name></white> <gray>is live on <white><platform></white>. <underlined>Watch</underlined>"
+    plain: "<red>●</red> <white><name></white> <gray>is live."
